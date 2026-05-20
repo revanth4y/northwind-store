@@ -1,0 +1,43 @@
+services:
+  - type: web
+    name: northwind-backend
+    runtime: node
+    rootDir: backend
+    buildCommand: npm install && npm run build
+    startCommand: npm run start
+    healthCheckPath: /health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 3001
+      - key: DATABASE_URL
+        sync: false
+      - key: CLERK_PUBLISHABLE_KEY
+        sync: false
+      - key: CLERK_SECRET_KEY
+        sync: false
+      - key: CLERK_WEBHOOK_SECRET
+        sync: false
+      - key: FRONTEND_URL
+        sync: false
+      - key: BACKEND_URL
+        sync: false
+      - key: POLAR_API_BASE
+        value: https://sandbox-api.polar.sh
+      - key: POLAR_ACCESS_TOKEN
+        sync: false
+      - key: POLAR_WEBHOOK_SECRET
+        sync: false
+      - key: POLAR_CHECKOUT_PRODUCT_ID
+        sync: false
+      - key: SHIPROCKET_EMAIL
+        sync: false
+      - key: SHIPROCKET_PASSWORD
+        sync: false
+      - key: SHIPROCKET_PICKUP_LOCATION
+        value: warehouse
+      - key: SHIPROCKET_SELLER_NAME
+        value: Northwind Store
+      - key: SHIPROCKET_SELLER_PHONE
+        value: "9036581406"
