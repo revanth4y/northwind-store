@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "tsx watch --import ./src/instrument.ts src/index.ts",
     "build": "tsc",
-    "start": "node --import ./src/instrument.ts dist/index.js",
+    "start": "node --import ./dist/instrument.js dist/index.js",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx scripts/seed.ts",
     "tunnel": "node scripts/serveo-tunnel.js"
