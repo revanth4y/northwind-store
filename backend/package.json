@@ -9,6 +9,8 @@
     "start": "node --import ./dist/instrument.js dist/index.js",
     "db:push": "drizzle-kit push",
     "db:seed": "tsx scripts/seed.ts",
+    "migrate:products": "tsx scripts/migrateLocalProducts.ts",
+    "migrate:images": "tsx scripts/migrateLocalImages.ts",
     "tunnel": "node scripts/serveo-tunnel.js"
   },
   "keywords": [],
