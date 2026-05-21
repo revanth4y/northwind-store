@@ -3,31 +3,19 @@ import type { Request, Response, NextFunction } from "express";
 import { getLocalUser } from "../lib/users";
 import { isAdmin } from "../lib/roles";
 import multer from "multer";
-import path from "node:path";
-import { getEnv } from "../lib/env";
 import { db } from "../db";
 import { orderItems, products } from "../db/schema";
 import { count, desc, eq } from "drizzle-orm";
 import { z } from "zod";
-import { deleteLocalAsset, UPLOADS_DIR } from "../lib/localUpload";
+import { uploadToCloudinary, deleteFromCloudinary } from "../lib/cloudinary";
 
-const env = getEnv();
-
-// ── Multer (local disk upload) ────────────────────────────────────────────────
+// ── Multer (memory storage — buffer is streamed to Cloudinary) ────────────────
 
 const ALLOWED_MIME = new Set(["image/jpeg", "image/png", "image/webp", "image/gif"]);
 const MAX_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => cb(null, UPLOADS_DIR),
-  filename: (_req, file, cb) => {
-    const ext = path.extname(file.originalname).toLowerCase() || ".jpg";
-    cb(null, `${Date.now()}-${Math.random().toString(36).slice(2, 8)}${ext}`);
-  },
-});
-
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: { fileSize: MAX_FILE_BYTES },
   fileFilter: (_req, file, cb) => {
     if (ALLOWED_MIME.has(file.mimetype)) {
@@ -112,7 +100,7 @@ export async function requireAdmin(req: Request, res: Response, next: NextFuncti
  * Accepts a single "file" field (multipart/form-data), saves it to /uploads,
  * and returns { url, fileId } compatible with the existing product schema.
  */
-export function uploadProductImage(req: Request, res: Response, _next: NextFunction) {
+export function uploadProductImage(req: Request, res: Response, next: NextFunction) {
   uploadMiddleware(req, res, (err) => {
     if (err instanceof multer.MulterError) {
       if (err.code === "LIMIT_FILE_SIZE") {
@@ -131,11 +119,15 @@ export function uploadProductImage(req: Request, res: Response, _next: NextFunct
       return;
     }
 
-    const backendUrl = env.BACKEND_URL.replace(/\/+$/, "");
-    const url = `${backendUrl}/uploads/${req.file.filename}`;
-    const fileId = req.file.filename;
-
-    res.json({ url, fileId });
+    // Stream the in-memory buffer to Cloudinary
+    uploadToCloudinary(req.file.buffer)
+      .then(({ url, publicId }) => {
+        res.json({ url, fileId: publicId });
+      })
+      .catch((e) => {
+        console.error("[upload] Cloudinary error:", e);
+        next(e);
+      });
   });
 }
 
@@ -225,8 +217,8 @@ export async function deleteAdminProduct(req: Request, res: Response, next: Next
       return;
     }
 
-    // Delete local upload file if it was uploaded (not an external URL)
-    await deleteLocalAsset(existing.imageKitFileId);
+    // Delete asset from Cloudinary (imageKitFileId stores the public_id)
+    await deleteFromCloudinary(existing.imageKitFileId);
 
     await db.delete(products).where(eq(products.id, id));
     res.json({ ok: true });

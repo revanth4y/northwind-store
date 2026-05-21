@@ -54,8 +54,6 @@ app.use(express.json());
 app.use(cors());
 app.use(clerkMiddleware());
 
-// Serve locally uploaded product images
-app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 app.use(sentryClerkUserMiddleware);
 
 app.get("/health", (_req, res) => {

@@ -10,7 +10,7 @@ const envSchema = z.object({
   CLERK_WEBHOOK_SECRET: z.string().optional(),
 
   FRONTEND_URL: z.string().url(),
-  /** Public-facing backend origin used to build uploaded-image URLs. */
+  /** Public-facing backend origin. */
   BACKEND_URL: z.string().url().default("http://localhost:3001"),
 
   POLAR_ACCESS_TOKEN: z.string().optional(),
@@ -28,10 +28,10 @@ const envSchema = z.object({
   SHIPROCKET_SELLER_NAME:     z.string().optional().default("Northwind Store"),
   SHIPROCKET_SELLER_PHONE:    z.string().optional().default("9999999999"),
 
-  // ── ImageKit (optional — image uploads disabled when absent) ───────────────
-  IMAGEKIT_PUBLIC_KEY:  z.string().optional(),
-  IMAGEKIT_PRIVATE_KEY: z.string().optional(),
-  IMAGEKIT_URL_ENDPOINT: z.string().url().optional(),
+  // ── Cloudinary (optional — image uploads disabled when absent) ─────────────
+  CLOUDINARY_CLOUD_NAME: z.string().optional(),
+  CLOUDINARY_API_KEY:    z.string().optional(),
+  CLOUDINARY_API_SECRET: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;
